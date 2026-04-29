@@ -1,0 +1,481 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>CAPD – BAXTER (מדריך קולי)</title>
+
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f4f6f8;
+      margin: 0;
+      padding: 0;
+      direction: rtl;
+      text-align: right;
+    }
+
+    header {
+      background: #005b96;
+      color: white;
+      padding: 18px;
+    }
+
+    header h1 {
+      margin: 0;
+      font-size: 20px;
+    }
+
+    header p {
+      margin: 8px 0 0;
+      font-size: 14px;
+      opacity: 0.9;
+    }
+
+    main {
+      padding: 15px;
+      max-width: 900px;
+      margin: auto;
+    }
+
+    .card {
+      background: white;
+      border-radius: 14px;
+      padding: 18px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+      margin-bottom: 14px;
+    }
+
+    .big {
+      font-size: 22px;
+      line-height: 1.6;
+      color: #111;
+      font-weight: bold;
+    }
+
+    .step-title {
+      font-size: 18px;
+      font-weight: bold;
+      color: #003b63;
+      margin-bottom: 10px;
+    }
+
+    .sentence {
+      font-size: 22px;
+      line-height: 1.7;
+      color: #222;
+      margin-bottom: 10px;
+    }
+
+    .warning {
+      background: #ffe5e5;
+      border: 1px solid #ffaaaa;
+      padding: 12px;
+      border-radius: 12px;
+      font-size: 18px;
+      font-weight: bold;
+      color: #8b0000;
+      margin-top: 10px;
+    }
+
+    .info {
+      background: #fff3cd;
+      border: 1px solid #ffeeba;
+      padding: 12px;
+      border-radius: 12px;
+      font-size: 16px;
+      margin-top: 10px;
+    }
+
+    .buttons {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    button {
+      padding: 14px 18px;
+      font-size: 18px;
+      border: none;
+      border-radius: 12px;
+      cursor: pointer;
+      min-width: 140px;
+    }
+
+    .btn-primary {
+      background: #0078d4;
+      color: white;
+    }
+
+    .btn-secondary {
+      background: #e0e0e0;
+      color: black;
+    }
+
+    .btn-danger {
+      background: #d9534f;
+      color: white;
+    }
+
+    .btn-dark {
+      background: #333;
+      color: white;
+    }
+
+    .status {
+      font-size: 14px;
+      color: #444;
+      margin-top: 8px;
+    }
+
+    .hidden {
+      display: none;
+    }
+
+    textarea {
+      width: 100%;
+      height: 180px;
+      font-size: 14px;
+      padding: 10px;
+      border-radius: 10px;
+      border: 1px solid #ccc;
+      resize: none;
+      direction: rtl;
+    }
+  </style>
+</head>
+
+<body>
+
+<header>
+  <h1>דיאליזה פרטוניאלית ידנית (CAPD) – BAXTER</h1>
+  <p>זרימת עבודה שלב-שלב | עבודה סטרילית | חיבור/ניתוק בטוח</p>
+</header>
+
+<main>
+
+  <!-- START SCREEN -->
+  <div class="card" id="startScreen">
+    <div class="big">ברוכים הבאים למדריך הקולי</div>
+    <p style="font-size:16px; line-height:1.6;">
+      המדריך מקריא כל משפט ועוצר.<br>
+      כדי להתקדם ניתן לומר <b>"תמשיך"</b> או ללחוץ על הכפתור.<br><br>
+      פקודות קוליות זמינות: <b>תמשיך</b> / <b>חזור</b> / <b>עצור</b>
+    </p>
+
+    <div class="buttons">
+      <button class="btn-primary" onclick="startProcedure()">▶ התחל טיפול</button>
+      <button class="btn-secondary" onclick="startVoiceRecognition()">🎤 הפעל זיהוי קול</button>
+    </div>
+
+    <div class="status" id="voiceStatus">זיהוי קול: כבוי</div>
+  </div>
+
+  <!-- MAIN GUIDE SCREEN -->
+  <div class="card hidden" id="guideScreen">
+    <div class="step-title" id="stepTitle">---</div>
+    <div class="sentence" id="stepText">---</div>
+
+    <div class="warning hidden" id="warningBox"></div>
+
+    <div class="info" id="nextCommand">
+      המערכת מחכה לפקודה: <b>"תמשיך"</b>
+    </div>
+
+    <div class="status" id="statusText">סטטוס: מוכן</div>
+  </div>
+
+  <!-- BUTTONS -->
+  <div class="card hidden" id="controlsScreen">
+    <div class="buttons">
+      <button class="btn-primary" onclick="nextSentence()">תמשיך ▶</button>
+      <button class="btn-secondary" onclick="prevSentence()">⬅ חזור</button>
+      <button class="btn-secondary" onclick="repeatSentence()">🔁 חזור על המשפט</button>
+      <button class="btn-danger" onclick="stopAll()">⛔ עצור</button>
+      <button class="btn-dark" onclick="stopAndReport()">🚨 עצור ודווח</button>
+    </div>
+
+    <div class="status" id="timeStatus">זמן: ---</div>
+  </div>
+
+  <!-- REPORT -->
+  <div class="card hidden" id="reportScreen">
+    <div class="step-title">📋 דוח ביצוע</div>
+    <p style="font-size:15px;">
+      ניתן להעתיק את הטקסט ולהדביק בקמליון / תיעוד.
+    </p>
+    <textarea id="reportText"></textarea>
+
+    <div class="buttons" style="margin-top:10px;">
+      <button class="btn-primary" onclick="copyReport()">📌 העתק דוח</button>
+      <button class="btn-secondary" onclick="location.reload()">🔄 טיפול חדש</button>
+    </div>
+  </div>
+
+</main>
+
+<script>
+  // =========================
+  // DATA
+  // =========================
+  const steps = [
+    {
+      title: "שלב A: הכנת סביבת עבודה",
+      text: "סגירת מיזוג, סגירת חלונות, סגירת דלת או וילון, חיטוי ידיים, משטח נקי ומסודר, פתיחת הציוד בצורה סטרילית"
+    },
+    {
+      title: "שלב B: חיבור המטופל (CONNECT)",
+      text: "מסכה על כולם, רחצת ידיים, עטיית כפפות סטריליות, הסרת מכסה בצורה סטרילית, חיבור הקטטר טינקוף לסט"
+    },
+    {
+      title: "שלב C: ניקוז (DRAIN)",
+      text: "פתיחת קו ניקוז על ידי סיבוב הסוגר של מוצא קטטר, ניקוז מלא לשקית ניקוז, מעקב אחר כמות וצבע, לשים לב לזרימה חלשה או כאב, שקילת השקית, תקין: נוזל צלול או צהבהב, לא תקין: נוזל עכור או דמי או ריח חריג, לעצור ולדווח"
+    },
+    {
+      title: "שלב D: מילוי (FILL)",
+      text: "פתיחת קו מילוי לאחר סיום ניקוז, שבירת הנצרה הירוקה, שטיפת הסט במשך 5 שניות, סגירת קו הניקוז על ידי קלימפ כחולים, מילוי לפי נפח בהוראה, מעקב אחר כאב או לחץ בבטן, לוודא שהתמיסה חמה"
+    },
+    {
+      title: "שלב E: סגירה וניתוק (DISCONNECT)",
+      text: "רחצת ידיים, מסיכת פנים לכולם, הכנת ציוד לסגירת הקטטר כולל פקק חדש וסגירת הצינורות של השקית על ידי קלימפ כחולים, עטיית כפפות סטריליות, ניתוק המטופל בצורה סטרילית, סגירת הקטטר עם פקק סטרילי חדש, קיבוע הקטטר, תיעוד במערכת קמליון: רכיב UF בטבלת הוראות ומדדים"
+    }
+  ];
+
+  // split by comma
+  const structuredSteps = steps.map(step => {
+    const parts = step.text.split(",").map(s => s.trim()).filter(s => s.length > 0);
+    return { title: step.title, parts };
+  });
+
+  // =========================
+  // STATE
+  // =========================
+  let currentStepIndex = 0;
+  let currentPartIndex = 0;
+
+  let recognition;
+  let listening = false;
+
+  let startTime = null;
+  let log = [];
+
+  // =========================
+  // HELPERS
+  // =========================
+  function nowTime() {
+    return new Date().toLocaleTimeString("he-IL");
+  }
+
+  function updateTimeStatus() {
+    if (!startTime) return;
+    document.getElementById("timeStatus").innerText =
+      "התחלה: " + startTime + " | עכשיו: " + nowTime();
+  }
+
+  function isWarningSentence(text) {
+    return text.includes("לא תקין") || text.includes("לעצור") || text.includes("לדווח");
+  }
+
+  // =========================
+  // UI UPDATE
+  // =========================
+  function updateUI() {
+    const step = structuredSteps[currentStepIndex];
+    const sentence = step.parts[currentPartIndex] || "";
+
+    document.getElementById("stepTitle").innerText = step.title;
+    document.getElementById("stepText").innerText = sentence;
+
+    // warning highlight
+    const warningBox = document.getElementById("warningBox");
+    if (isWarningSentence(sentence)) {
+      warningBox.classList.remove("hidden");
+      warningBox.innerText = "⚠ אזהרה: " + sentence;
+    } else {
+      warningBox.classList.add("hidden");
+      warningBox.innerText = "";
+    }
+  }
+
+  // =========================
+  // SPEECH
+  // =========================
+  function speak(text) {
+    stopSpeech();
+    const utterance = new SpeechSynthesisUtterance(text);
+    utterance.lang = "he-IL";
+    utterance.rate = 0.95;
+    speechSynthesis.speak(utterance);
+  }
+
+  function stopSpeech() {
+    speechSynthesis.cancel();
+  }
+
+  // =========================
+  // PROCEDURE CONTROL
+  // =========================
+  function startProcedure() {
+    document.getElementById("startScreen").classList.add("hidden");
+    document.getElementById("guideScreen").classList.remove("hidden");
+    document.getElementById("controlsScreen").classList.remove("hidden");
+
+    startTime = nowTime();
+    updateTimeStatus();
+
+    updateUI();
+    speak(document.getElementById("stepText").innerText);
+
+    document.getElementById("statusText").innerText = "סטטוס: מחכה ל'תמשיך'";
+    logAction("התחלת טיפול");
+  }
+
+  function logAction(action) {
+    log.push("[" + nowTime() + "] " + action);
+  }
+
+  function nextSentence() {
+    const step = structuredSteps[currentStepIndex];
+
+    // log current sentence as done
+    const doneSentence = step.parts[currentPartIndex];
+    if (doneSentence) {
+      logAction("בוצע: " + step.title + " | " + doneSentence);
+    }
+
+    if (currentPartIndex < step.parts.length - 1) {
+      currentPartIndex++;
+    } else {
+      if (currentStepIndex < structuredSteps.length - 1) {
+        currentStepIndex++;
+        currentPartIndex = 0;
+      } else {
+        finishProcedure();
+        return;
+      }
+    }
+
+    updateUI();
+    speak(document.getElementById("stepText").innerText);
+    document.getElementById("statusText").innerText = "סטטוס: מחכה ל'תמשיך'";
+    updateTimeStatus();
+  }
+
+  function prevSentence() {
+    if (currentPartIndex > 0) {
+      currentPartIndex--;
+    } else if (currentStepIndex > 0) {
+      currentStepIndex--;
+      currentPartIndex = structuredSteps[currentStepIndex].parts.length - 1;
+    }
+
+    updateUI();
+    speak(document.getElementById("stepText").innerText);
+    document.getElementById("statusText").innerText = "סטטוס: חזר אחורה";
+    logAction("חזרה אחורה");
+    updateTimeStatus();
+  }
+
+  function repeatSentence() {
+    speak(document.getElementById("stepText").innerText);
+    document.getElementById("statusText").innerText = "סטטוס: חוזר על המשפט";
+    logAction("חזרה על משפט");
+  }
+
+  function stopAll() {
+    stopSpeech();
+    if (recognition) recognition.stop();
+    document.getElementById("statusText").innerText = "סטטוס: עצור";
+    logAction("עצירה ידנית");
+  }
+
+  function stopAndReport() {
+    stopSpeech();
+    if (recognition) recognition.stop();
+    document.getElementById("statusText").innerText = "סטטוס: עצור ודווח";
+    logAction("עצור ודווח - נדרש דיווח לצוות/רופא");
+    alert("🚨 עצור ודווח: נא לעצור את הפעולה ולדווח לפי נוהל.");
+  }
+
+  function finishProcedure() {
+    stopSpeech();
+    logAction("סיום טיפול");
+
+    document.getElementById("guideScreen").classList.add("hidden");
+    document.getElementById("controlsScreen").classList.add("hidden");
+    document.getElementById("reportScreen").classList.remove("hidden");
+
+    const report = 
+      "דיאליזה פרטוניאלית ידנית (CAPD) – BAXTER\n" +
+      "זמן התחלה: " + startTime + "\n" +
+      "זמן סיום: " + nowTime() + "\n\n" +
+      "לוג ביצוע:\n" +
+      log.join("\n");
+
+    document.getElementById("reportText").value = report;
+  }
+
+  function copyReport() {
+    const txt = document.getElementById("reportText");
+    txt.select();
+    document.execCommand("copy");
+    alert("הדוח הועתק ללוח.");
+  }
+
+  // =========================
+  // VOICE RECOGNITION
+  // =========================
+  function startVoiceRecognition() {
+    if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
+      alert("הדפדפן לא תומך בזיהוי קול. מומלץ להשתמש ב-Chrome באנדרואיד.");
+      return;
+    }
+
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    recognition = new SpeechRecognition();
+    recognition.lang = "he-IL";
+    recognition.interimResults = false;
+    recognition.continuous = true;
+
+    recognition.onstart = () => {
+      listening = true;
+      document.getElementById("voiceStatus").innerText = "זיהוי קול: פעיל 🎤";
+      logAction("הפעלת זיהוי קול");
+    };
+
+    recognition.onend = () => {
+      listening = false;
+      document.getElementById("voiceStatus").innerText = "זיהוי קול: הופסק";
+      logAction("זיהוי קול הופסק");
+    };
+
+    recognition.onerror = (event) => {
+      document.getElementById("voiceStatus").innerText = "שגיאה בזיהוי קול: " + event.error;
+      logAction("שגיאת זיהוי קול: " + event.error);
+    };
+
+    recognition.onresult = (event) => {
+      const transcript = event.results[event.results.length - 1][0].transcript.trim();
+      console.log("שמעתי:", transcript);
+
+      // voice commands
+      if (transcript.includes("תמשיך") || transcript.includes("המשך")) {
+        nextSentence();
+      }
+
+      if (transcript.includes("חזור") || transcript.includes("אחורה")) {
+        prevSentence();
+      }
+
+      if (transcript.includes("עצור")) {
+        stopAll();
+      }
+    };
+
+    recognition.start();
+  }
+
+</script>
+
+</body>
+</html>
