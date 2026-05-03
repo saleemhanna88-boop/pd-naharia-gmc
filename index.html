@@ -3,62 +3,109 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>CAPD - מדריך קולי</title>
+  <title>CAPD - מדריך קולי מקצועי</title>
 
   <style>
     body {
       font-family: Arial, sans-serif;
-      background: #f4f6f9;
+      background: #0f172a;
+      color: white;
       margin: 0;
       padding: 0;
       text-align: center;
     }
 
     header {
-      background: #1e3a8a;
-      color: white;
-      padding: 20px;
+      padding: 25px 15px;
+      background: #1e293b;
+      border-bottom: 2px solid rgba(255,255,255,0.08);
     }
 
-    h1 { margin: 0; font-size: 22px; }
-    h2 { margin: 8px 0 0 0; font-size: 15px; font-weight: normal; opacity: 0.9; }
+    h1 {
+      margin: 0;
+      font-size: 26px;
+    }
+
+    h2 {
+      margin: 10px 0 0 0;
+      font-size: 15px;
+      font-weight: normal;
+      opacity: 0.85;
+    }
 
     main {
-      padding: 20px;
-      max-width: 900px;
+      max-width: 1100px;
       margin: auto;
-    }
-
-    .card {
-      background: white;
-      border-radius: 12px;
       padding: 20px;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.12);
-      margin-bottom: 20px;
     }
 
-    .step-title {
-      font-size: 18px;
-      font-weight: bold;
+    .panel {
+      background: rgba(255,255,255,0.06);
+      border: 1px solid rgba(255,255,255,0.12);
+      border-radius: 18px;
+      padding: 25px;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.3);
+    }
+
+    .stepNumber {
+      font-size: 16px;
+      opacity: 0.8;
       margin-bottom: 10px;
-      color: #1e3a8a;
     }
 
-    .step-text {
-      font-size: 20px;
-      padding: 15px;
-      background: #eef2ff;
-      border-radius: 10px;
-      min-height: 80px;
+    .stepText {
+      font-size: 38px;
+      font-weight: bold;
+      line-height: 1.4;
+      background: rgba(255,255,255,0.08);
+      padding: 25px;
+      border-radius: 16px;
+      min-height: 160px;
       display: flex;
       align-items: center;
       justify-content: center;
     }
 
-    .status {
-      margin-top: 10px;
-      font-size: 16px;
-      color: #0f172a;
+    .statusBar {
+      margin-top: 18px;
+      font-size: 18px;
+      padding: 14px;
+      border-radius: 14px;
+      background: rgba(255,255,255,0.06);
+      border: 1px solid rgba(255,255,255,0.10);
+    }
+
+    .statusGreen { color: #4ade80; }
+    .statusYellow { color: #facc15; }
+    .statusRed { color: #f87171; }
+
+    .timer {
+      margin-top: 15px;
+      font-size: 20px;
+      opacity: 0.9;
+    }
+
+    .footerNote {
+      margin-top: 18px;
+      font-size: 14px;
+      opacity: 0.75;
+    }
+
+    .bigButton {
+      margin-top: 20px;
+      padding: 16px 26px;
+      border-radius: 14px;
+      border: none;
+      font-size: 18px;
+      cursor: pointer;
+      background: #2563eb;
+      color: white;
+      font-weight: bold;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.35);
+    }
+
+    .bigButton:active {
+      transform: scale(0.98);
     }
   </style>
 </head>
@@ -71,10 +118,21 @@
 </header>
 
 <main>
-  <div class="card">
-    <div class="step-title">שלב נוכחי:</div>
-    <div id="stepDisplay" class="step-text">המערכת תתחיל אוטומטית בעוד 3 שניות...</div>
-    <div id="statusDisplay" class="status"></div>
+  <div class="panel">
+    <div id="stepNumber" class="stepNumber">שלב 0 מתוך 0</div>
+    <div id="stepText" class="stepText">לחץ "התחל מדריך" להפעלה</div>
+
+    <div id="statusBar" class="statusBar statusYellow">
+      מצב: מוכן להפעלה
+    </div>
+
+    <div id="timer" class="timer"></div>
+
+    <button class="bigButton" onclick="startGuide()">התחל מדריך</button>
+
+    <div class="footerNote">
+      מומלץ להשתמש ב-Chrome (מחשב / Android) עבור פקודה קולית "תמשיך".
+    </div>
   </div>
 </main>
 
@@ -127,18 +185,68 @@
 
   const PAUSE_AFTER_TEXT = "שקילת השקית";
 
-  const stepDisplay = document.getElementById("stepDisplay");
-  const statusDisplay = document.getElementById("statusDisplay");
+  const WAIT_SECONDS = 10;
+  const VOICE_TIMEOUT_SECONDS = 60;
 
   let currentStep = 0;
-  let recognition = null;
+  let running = false;
+
+  const stepNumberEl = document.getElementById("stepNumber");
+  const stepTextEl = document.getElementById("stepText");
+  const statusBarEl = document.getElementById("statusBar");
+  const timerEl = document.getElementById("timer");
+
+  function setStatus(text, type) {
+    statusBarEl.textContent = "מצב: " + text;
+    statusBarEl.classList.remove("statusGreen", "statusYellow", "statusRed");
+
+    if (type === "green") statusBarEl.classList.add("statusGreen");
+    if (type === "yellow") statusBarEl.classList.add("statusYellow");
+    if (type === "red") statusBarEl.classList.add("statusRed");
+  }
+
+  function updateStepDisplay() {
+    stepNumberEl.textContent = `שלב ${currentStep + 1} מתוך ${steps.length}`;
+    stepTextEl.textContent = steps[currentStep];
+  }
 
   function sleep(ms) {
     return new Promise(resolve => setTimeout(resolve, ms));
   }
 
+  // BEEP לפני מעבר שלב
+  function beep(duration = 200, frequency = 880) {
+    try {
+      const AudioContext = window.AudioContext || window.webkitAudioContext;
+      const ctx = new AudioContext();
+      const oscillator = ctx.createOscillator();
+      const gainNode = ctx.createGain();
+
+      oscillator.type = "sine";
+      oscillator.frequency.value = frequency;
+
+      oscillator.connect(gainNode);
+      gainNode.connect(ctx.destination);
+
+      oscillator.start();
+      gainNode.gain.setValueAtTime(0.2, ctx.currentTime);
+
+      setTimeout(() => {
+        oscillator.stop();
+        ctx.close();
+      }, duration);
+    } catch (e) {
+      // אם אין תמיכה - פשוט לא יעשה beep
+    }
+  }
+
   function speak(text) {
     return new Promise((resolve) => {
+      if (!window.speechSynthesis) {
+        resolve();
+        return;
+      }
+
       const utterance = new SpeechSynthesisUtterance(text);
       utterance.lang = "he-IL";
       utterance.rate = 0.95;
@@ -150,57 +258,30 @@
     });
   }
 
-  async function runGuide() {
-    while (currentStep < steps.length) {
-      const text = steps[currentStep];
-
-      stepDisplay.textContent = text;
-      statusDisplay.textContent = "מקריא...";
-
-      await speak(text);
-
-      // אם זה שלב השקילה - עצירה מיוחדת
-      if (text === PAUSE_AFTER_TEXT) {
-        statusDisplay.textContent = "המערכת עצרה. נא לומר בקול: תמשיך";
-
-        const ok = await waitForVoiceCommandOrTimeout();
-        if (!ok) {
-          statusDisplay.textContent = "לא זוהתה פקודה. ממשיך אוטומטית...";
-          await sleep(2000);
-        } else {
-          statusDisplay.textContent = "זוהתה פקודה: תמשיך. ממשיך...";
-          await sleep(1000);
-        }
-      } else {
-        // מעבר רגיל אחרי 10 שניות
-        statusDisplay.textContent = "המתנה 10 שניות לשלב הבא...";
-        await sleep(10000);
-      }
-
-      currentStep++;
+  async function countdown(seconds) {
+    for (let i = seconds; i > 0; i--) {
+      timerEl.textContent = `מעבר לשלב הבא בעוד: ${i} שניות`;
+      await sleep(1000);
     }
-
-    stepDisplay.textContent = "המדריך הסתיים.";
-    statusDisplay.textContent = "";
+    timerEl.textContent = "";
   }
 
-  function waitForVoiceCommandOrTimeout() {
+  function waitForVoiceCommand() {
     return new Promise((resolve) => {
-
-      // אם אין תמיכה בדפדפן בזיהוי קול
       const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+
+      // אם אין תמיכה בזיהוי קול
       if (!SpeechRecognition) {
-        // fallback: ממשיך לבד אחרי 60 שניות
-        setTimeout(() => resolve(false), 60000);
+        resolve(false);
         return;
       }
 
-      recognition = new SpeechRecognition();
+      const recognition = new SpeechRecognition();
       recognition.lang = "he-IL";
       recognition.continuous = true;
       recognition.interimResults = true;
 
-      let resolved = false;
+      let finished = false;
 
       recognition.onresult = (event) => {
         let transcript = "";
@@ -211,8 +292,8 @@
         transcript = transcript.trim().toLowerCase();
 
         if (transcript.includes("תמשיך") || transcript.includes("המשך")) {
-          if (!resolved) {
-            resolved = true;
+          if (!finished) {
+            finished = true;
             recognition.stop();
             resolve(true);
           }
@@ -220,38 +301,81 @@
       };
 
       recognition.onerror = () => {
-        if (!resolved) {
-          resolved = true;
+        if (!finished) {
+          finished = true;
           resolve(false);
         }
       };
 
       recognition.onend = () => {
-        // אם הזיהוי הסתיים בלי "תמשיך"
-        if (!resolved) {
-          resolved = true;
+        if (!finished) {
+          finished = true;
           resolve(false);
         }
       };
 
       recognition.start();
 
-      // timeout 60 שניות
       setTimeout(() => {
-        if (!resolved) {
-          resolved = true;
+        if (!finished) {
+          finished = true;
           recognition.stop();
           resolve(false);
         }
-      }, 60000);
+      }, VOICE_TIMEOUT_SECONDS * 1000);
     });
   }
 
-  // התחלה אוטומטית אחרי 3 שניות
-  setTimeout(() => {
-    runGuide();
-  }, 3000);
+  async function runGuide() {
+    while (running && currentStep < steps.length) {
+      updateStepDisplay();
 
+      setStatus("מקריא שלב", "green");
+      timerEl.textContent = "";
+
+      await speak(steps[currentStep]);
+
+      // עצירה מיוחדת אחרי שקילת השקית
+      if (steps[currentStep] === PAUSE_AFTER_TEXT) {
+        setStatus("עצירה. נא לומר בקול: תמשיך", "red");
+
+        timerEl.textContent = `ממתין לפקודה קולית עד ${VOICE_TIMEOUT_SECONDS} שניות...`;
+
+        const ok = await waitForVoiceCommand();
+
+        if (ok) {
+          setStatus("זוהתה פקודה קולית. ממשיך", "green");
+          timerEl.textContent = "";
+          await sleep(1000);
+        } else {
+          setStatus("לא זוהתה פקודה. ממשיך אוטומטית", "yellow");
+          timerEl.textContent = "";
+          await sleep(2000);
+        }
+
+      } else {
+        setStatus("המתנה לפני מעבר שלב", "yellow");
+
+        beep(180, 880);
+        await countdown(WAIT_SECONDS);
+      }
+
+      currentStep++;
+    }
+
+    setStatus("המדריך הסתיים", "green");
+    stepTextEl.textContent = "סיום התהליך";
+    timerEl.textContent = "";
+    running = false;
+  }
+
+  function startGuide() {
+    window.speechSynthesis.cancel();
+    currentStep = 0;
+    running = true;
+    setStatus("התחלה", "yellow");
+    runGuide();
+  }
 </script>
 
 </body>
