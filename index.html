@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>מדריך קולי CAPD - דיאליזה פרטוניאלית ידנית</title>
+  <title>CAPD - מדריך קולי</title>
 
   <style>
     body {
@@ -20,17 +20,8 @@
       padding: 20px;
     }
 
-    h1 {
-      margin: 0;
-      font-size: 22px;
-    }
-
-    h2 {
-      margin: 8px 0 0 0;
-      font-size: 15px;
-      font-weight: normal;
-      opacity: 0.9;
-    }
+    h1 { margin: 0; font-size: 22px; }
+    h2 { margin: 8px 0 0 0; font-size: 15px; font-weight: normal; opacity: 0.9; }
 
     main {
       padding: 20px;
@@ -47,55 +38,27 @@
     }
 
     .step-title {
-      font-size: 20px;
+      font-size: 18px;
       font-weight: bold;
       margin-bottom: 10px;
       color: #1e3a8a;
     }
 
     .step-text {
-      font-size: 18px;
-      padding: 10px;
+      font-size: 20px;
+      padding: 15px;
       background: #eef2ff;
       border-radius: 10px;
-      min-height: 60px;
+      min-height: 80px;
       display: flex;
       align-items: center;
       justify-content: center;
     }
 
-    button {
-      margin: 8px;
-      padding: 12px 18px;
+    .status {
+      margin-top: 10px;
       font-size: 16px;
-      border: none;
-      border-radius: 10px;
-      cursor: pointer;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.15);
-    }
-
-    .start { background: #16a34a; color: white; }
-    .stop { background: #dc2626; color: white; }
-    .continue { background: #2563eb; color: white; }
-    .prev { background: #64748b; color: white; }
-    .next { background: #0f172a; color: white; }
-
-    .disabled {
-      opacity: 0.5;
-      cursor: not-allowed;
-    }
-
-    .info {
-      font-size: 14px;
-      margin-top: 15px;
-      color: #334155;
-    }
-
-    select {
-      padding: 8px;
-      font-size: 14px;
-      border-radius: 8px;
-      border: 1px solid #cbd5e1;
+      color: #0f172a;
     }
   </style>
 </head>
@@ -110,29 +73,13 @@
 <main>
   <div class="card">
     <div class="step-title">שלב נוכחי:</div>
-    <div id="stepDisplay" class="step-text">לחץ "התחל" להפעלת המדריך הקולי</div>
-  </div>
-
-  <div class="card">
-    <button class="start" onclick="startGuide()">▶ התחל</button>
-    <button class="stop" onclick="stopGuide()">⏹ עצור</button>
-    <button id="continueBtn" class="continue disabled" onclick="manualContinue()" disabled>🔵 המשך טיפול</button>
-    <br/>
-    <button class="prev" onclick="prevStep()">⬅ חזור שלב</button>
-    <button class="next" onclick="nextStep()">דלג שלב ➡</button>
-
-    <div class="info">
-      השהייה בין שלבים: <b>10 שניות</b><br/>
-      שפת דיבור:
-      <select id="voiceSelect"></select>
-    </div>
+    <div id="stepDisplay" class="step-text">המערכת תתחיל אוטומטית בעוד 3 שניות...</div>
+    <div id="statusDisplay" class="status"></div>
   </div>
 </main>
 
 <script>
-  // --- טקסט מחולק לפי פסיקים: כל פסיק = שלב חדש ---
   const steps = [
-    // שלב A
     "שלב A: הכנת סביבת עבודה",
     "סגירת מיזוג",
     "סגירת חלונות",
@@ -142,7 +89,6 @@
     "פתיחת הציוד בצורה סטרילית",
     "לוודא שהתמיסה חמה",
 
-    // שלב B
     "שלב B: חיבור המטופל CONNECT",
     "מסכה על כולם",
     "רחצת ידיים",
@@ -150,17 +96,14 @@
     "הסרת מכסה בצורה סטרילית",
     "חיבור הקטטר טינקוף לסט",
 
-    // שלב C
     "שלב C: ניקוז DRAIN",
     "פתיחת קו ניקוז על ידי סיבוב הסוגר של מוצא קטטר",
     "ניקוז מלא לשקית ניקוז",
     "הורדת כפפות ולחזור למטופל לאחר סיום שלב הניקוז",
 
-    // לאחר סיום הניקוז
     "לאחר סיום השלב של הניקוז",
     "שקילת השקית",
 
-    // שלב D
     "שלב D: מילוי FILL",
     "פתיחת קו מילוי לאחר סיום ניקוז",
     "שבירת הנצרה הירוקה",
@@ -169,7 +112,6 @@
     "מילוי לפי נפח בהוראה",
     "מעקב אחר כאב או לחץ בבטן",
 
-    // שלב E
     "שלב E: סגירה וניתוק DISCONNECT",
     "רחצת ידיים",
     "מסיכת פנים לכולם",
@@ -183,163 +125,133 @@
     "סיום התהליך"
   ];
 
-  // אינדקס השלב שבו צריך לעצור ולחכות לכפתור המשך
-  // כאן העצירה אחרי "שקילת השקית"
-  const pauseAfterIndex = steps.indexOf("שקילת השקית");
-
-  let currentStep = 0;
-  let isRunning = false;
-  let timeoutHandle = null;
-  let voices = [];
-  let selectedVoice = null;
+  const PAUSE_AFTER_TEXT = "שקילת השקית";
 
   const stepDisplay = document.getElementById("stepDisplay");
-  const continueBtn = document.getElementById("continueBtn");
-  const voiceSelect = document.getElementById("voiceSelect");
+  const statusDisplay = document.getElementById("statusDisplay");
 
-  function loadVoices() {
-    voices = speechSynthesis.getVoices();
-    voiceSelect.innerHTML = "";
+  let currentStep = 0;
+  let recognition = null;
 
-    voices.forEach((v, index) => {
-      const option = document.createElement("option");
-      option.value = index;
-      option.textContent = `${v.name} (${v.lang})`;
-      voiceSelect.appendChild(option);
-    });
-
-    // נסה לבחור עברית אם קיימת
-    const hebrewIndex = voices.findIndex(v => v.lang.toLowerCase().includes("he"));
-    if (hebrewIndex !== -1) {
-      voiceSelect.value = hebrewIndex;
-      selectedVoice = voices[hebrewIndex];
-    } else {
-      selectedVoice = voices[0] || null;
-    }
+  function sleep(ms) {
+    return new Promise(resolve => setTimeout(resolve, ms));
   }
-
-  speechSynthesis.onvoiceschanged = loadVoices;
-
-  voiceSelect.addEventListener("change", () => {
-    const idx = parseInt(voiceSelect.value);
-    selectedVoice = voices[idx];
-  });
 
   function speak(text) {
     return new Promise((resolve) => {
-      if (!window.speechSynthesis) {
-        alert("הדפדפן שלך לא תומך בדיבור קולי");
-        resolve();
-        return;
-      }
-
-      speechSynthesis.cancel();
-
       const utterance = new SpeechSynthesisUtterance(text);
       utterance.lang = "he-IL";
-
-      if (selectedVoice) {
-        utterance.voice = selectedVoice;
-      }
-
       utterance.rate = 0.95;
-      utterance.pitch = 1;
 
       utterance.onend = () => resolve();
       utterance.onerror = () => resolve();
 
-      speechSynthesis.speak(utterance);
+      window.speechSynthesis.speak(utterance);
     });
   }
 
-  async function runStep() {
-    if (!isRunning) return;
+  async function runGuide() {
+    while (currentStep < steps.length) {
+      const text = steps[currentStep];
 
-    if (currentStep >= steps.length) {
-      stepDisplay.textContent = "המדריך הסתיים.";
-      isRunning = false;
-      return;
-    }
+      stepDisplay.textContent = text;
+      statusDisplay.textContent = "מקריא...";
 
-    const text = steps[currentStep];
-    stepDisplay.textContent = text;
+      await speak(text);
 
-    await speak(text);
+      // אם זה שלב השקילה - עצירה מיוחדת
+      if (text === PAUSE_AFTER_TEXT) {
+        statusDisplay.textContent = "המערכת עצרה. נא לומר בקול: תמשיך";
 
-    // עצירה מיוחדת אחרי שקילת השקית
-    if (currentStep === pauseAfterIndex) {
-      pauseForManualContinue();
-      return;
-    }
+        const ok = await waitForVoiceCommandOrTimeout();
+        if (!ok) {
+          statusDisplay.textContent = "לא זוהתה פקודה. ממשיך אוטומטית...";
+          await sleep(2000);
+        } else {
+          statusDisplay.textContent = "זוהתה פקודה: תמשיך. ממשיך...";
+          await sleep(1000);
+        }
+      } else {
+        // מעבר רגיל אחרי 10 שניות
+        statusDisplay.textContent = "המתנה 10 שניות לשלב הבא...";
+        await sleep(10000);
+      }
 
-    // המתנה 10 שניות
-    timeoutHandle = setTimeout(() => {
       currentStep++;
-      runStep();
-    }, 10000);
-  }
-
-  function startGuide() {
-    stopGuide();
-    isRunning = true;
-    currentStep = 0;
-    continueBtn.disabled = true;
-    continueBtn.classList.add("disabled");
-    runStep();
-  }
-
-  function stopGuide() {
-    isRunning = false;
-    speechSynthesis.cancel();
-    clearTimeout(timeoutHandle);
-    timeoutHandle = null;
-
-    continueBtn.disabled = true;
-    continueBtn.classList.add("disabled");
-  }
-
-  function pauseForManualContinue() {
-    isRunning = false;
-    continueBtn.disabled = false;
-    continueBtn.classList.remove("disabled");
-    stepDisplay.textContent += " (ממתין ללחיצה על 'המשך טיפול')";
-  }
-
-  function manualContinue() {
-    continueBtn.disabled = true;
-    continueBtn.classList.add("disabled");
-
-    isRunning = true;
-    currentStep++;
-    runStep();
-  }
-
-  function nextStep() {
-    speechSynthesis.cancel();
-    clearTimeout(timeoutHandle);
-
-    if (currentStep < steps.length - 1) {
-      currentStep++;
-      isRunning = true;
-      runStep();
     }
+
+    stepDisplay.textContent = "המדריך הסתיים.";
+    statusDisplay.textContent = "";
   }
 
-  function prevStep() {
-    speechSynthesis.cancel();
-    clearTimeout(timeoutHandle);
+  function waitForVoiceCommandOrTimeout() {
+    return new Promise((resolve) => {
 
-    if (currentStep > 0) {
-      currentStep--;
-      isRunning = true;
-      runStep();
-    }
+      // אם אין תמיכה בדפדפן בזיהוי קול
+      const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+      if (!SpeechRecognition) {
+        // fallback: ממשיך לבד אחרי 60 שניות
+        setTimeout(() => resolve(false), 60000);
+        return;
+      }
+
+      recognition = new SpeechRecognition();
+      recognition.lang = "he-IL";
+      recognition.continuous = true;
+      recognition.interimResults = true;
+
+      let resolved = false;
+
+      recognition.onresult = (event) => {
+        let transcript = "";
+        for (let i = event.resultIndex; i < event.results.length; i++) {
+          transcript += event.results[i][0].transcript;
+        }
+
+        transcript = transcript.trim().toLowerCase();
+
+        if (transcript.includes("תמשיך") || transcript.includes("המשך")) {
+          if (!resolved) {
+            resolved = true;
+            recognition.stop();
+            resolve(true);
+          }
+        }
+      };
+
+      recognition.onerror = () => {
+        if (!resolved) {
+          resolved = true;
+          resolve(false);
+        }
+      };
+
+      recognition.onend = () => {
+        // אם הזיהוי הסתיים בלי "תמשיך"
+        if (!resolved) {
+          resolved = true;
+          resolve(false);
+        }
+      };
+
+      recognition.start();
+
+      // timeout 60 שניות
+      setTimeout(() => {
+        if (!resolved) {
+          resolved = true;
+          recognition.stop();
+          resolve(false);
+        }
+      }, 60000);
+    });
   }
 
-  // טען קולות ברגע טעינת הדף
-  window.onload = () => {
-    loadVoices();
-  };
+  // התחלה אוטומטית אחרי 3 שניות
+  setTimeout(() => {
+    runGuide();
+  }, 3000);
+
 </script>
 
 </body>
