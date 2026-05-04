@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>CAPD - מדריך קולי מקצועי</title>
+  <title>CAPD - מדריך קולי</title>
 
   <style>
     :root{
@@ -21,19 +21,19 @@
 
     body{
       margin:0;
-      font-family: "Segoe UI", Arial, sans-serif;
+      font-family: Arial, sans-serif;
       background: radial-gradient(circle at top right, #162a50 0%, var(--bg) 60%);
       color:var(--text);
       min-height:100vh;
       display:flex;
-      align-items:center;
       justify-content:center;
+      align-items:center;
       padding:20px;
     }
 
     .app{
       width:min(1100px, 100%);
-      background: linear-gradient(180deg, rgba(255,255,255,0.04), rgba(255,255,255,0.02));
+      background: rgba(255,255,255,0.03);
       border:1px solid var(--border);
       border-radius:22px;
       box-shadow: var(--shadow);
@@ -41,65 +41,54 @@
     }
 
     header{
-      padding:24px 24px 18px 24px;
+      padding:22px;
       border-bottom:1px solid var(--border);
       background: linear-gradient(90deg, rgba(56,189,248,0.12), transparent);
     }
 
-    .title{
-      font-size:1.5rem;
-      font-weight:800;
+    h1{
       margin:0;
-      line-height:1.4;
+      font-size:1.5rem;
     }
 
     .subtitle{
       margin-top:8px;
       color:var(--muted);
       font-size:0.95rem;
-      line-height:1.6;
+      line-height:1.5;
     }
 
     main{
-      padding:22px;
+      padding:20px;
       display:grid;
       grid-template-columns: 1.2fr 0.8fr;
-      gap:18px;
+      gap:16px;
     }
 
-    @media (max-width: 900px){
-      main{
-        grid-template-columns: 1fr;
-      }
+    @media(max-width:900px){
+      main{ grid-template-columns:1fr; }
     }
 
     .panel{
-      background: rgba(17,26,46,0.88);
+      background: rgba(17,26,46,0.9);
       border:1px solid var(--border);
       border-radius:18px;
-      padding:18px;
+      padding:16px;
     }
 
-    .panel h2{
-      margin:0 0 12px 0;
-      font-size:1.05rem;
-    }
-
-    .progressBox{
+    .badgeRow{
       display:flex;
-      align-items:center;
-      justify-content:space-between;
-      gap:12px;
-      margin-bottom:14px;
       flex-wrap:wrap;
+      gap:10px;
+      margin-bottom:12px;
     }
 
     .badge{
       padding:8px 12px;
       border-radius:999px;
-      font-size:0.85rem;
       border:1px solid var(--border);
-      background: rgba(255,255,255,0.03);
+      background: rgba(255,255,255,0.02);
+      font-size:0.85rem;
       color:var(--muted);
     }
 
@@ -107,44 +96,50 @@
       color:var(--text);
     }
 
-    .bigText{
+    .current{
       background: rgba(15,23,42,0.9);
       border:1px solid var(--border);
       border-radius:16px;
-      padding:18px;
+      padding:16px;
       min-height:150px;
-      line-height:1.8;
-      font-size:1.05rem;
       display:flex;
       align-items:center;
+      line-height:1.8;
+      font-size:1.05rem;
     }
 
-    .bigText .muted{
-      color:var(--muted);
+    .warningBox{
+      margin-top:12px;
+      padding:12px;
+      border-radius:14px;
+      border:1px solid rgba(245,158,11,0.25);
+      background: rgba(245,158,11,0.08);
+      color:#fde68a;
+      display:none;
+      line-height:1.6;
     }
 
     .controls{
+      margin-top:14px;
       display:flex;
       flex-direction:column;
-      gap:12px;
-      margin-top:16px;
+      gap:10px;
     }
 
-    .rowButtons{
+    .row{
       display:flex;
       gap:10px;
       flex-wrap:wrap;
     }
 
     button{
-      border:none;
+      flex:1;
+      padding:14px;
       border-radius:14px;
-      padding:14px 14px;
-      font-size:1rem;
+      border:none;
       cursor:pointer;
       font-weight:700;
-      transition: 0.15s ease-in-out;
-      flex:1;
+      font-size:1rem;
     }
 
     button:disabled{
@@ -152,70 +147,32 @@
       cursor:not-allowed;
     }
 
-    .btnStart{
-      background: linear-gradient(90deg, var(--accent), #60a5fa);
-      color:#06111f;
-    }
-
-    .btnContinue{
-      background: linear-gradient(90deg, var(--accent2), #86efac);
-      color:#04120a;
-    }
-
-    .btnStop{
-      background: rgba(239,68,68,0.12);
-      border:1px solid rgba(239,68,68,0.35);
-      color:#fecaca;
-    }
-
-    .btnReplay{
-      background: rgba(245,158,11,0.12);
-      border:1px solid rgba(245,158,11,0.35);
-      color:#fde68a;
-    }
-
-    .btnNext{
-      background: rgba(56,189,248,0.10);
-      border:1px solid rgba(56,189,248,0.35);
-      color:#bae6fd;
-    }
-
-    .btnPrev{
-      background: rgba(148,163,184,0.10);
-      border:1px solid rgba(148,163,184,0.35);
-      color:#e2e8f0;
-    }
-
-    .warningBox{
-      margin-top:14px;
-      padding:12px 14px;
-      border-radius:14px;
-      border:1px solid rgba(245,158,11,0.25);
-      background: rgba(245,158,11,0.08);
-      color:#fde68a;
-      font-size:0.92rem;
-      line-height:1.6;
-    }
+    .start{ background: linear-gradient(90deg, var(--accent), #60a5fa); color:#06111f; }
+    .continue{ background: linear-gradient(90deg, var(--accent2), #86efac); color:#04120a; }
+    .stop{ background: rgba(239,68,68,0.12); border:1px solid rgba(239,68,68,0.35); color:#fecaca; }
+    .next{ background: rgba(56,189,248,0.10); border:1px solid rgba(56,189,248,0.35); color:#bae6fd; }
+    .prev{ background: rgba(148,163,184,0.10); border:1px solid rgba(148,163,184,0.35); color:#e2e8f0; }
+    .replay{ background: rgba(245,158,11,0.12); border:1px solid rgba(245,158,11,0.35); color:#fde68a; }
 
     .timeline{
-      margin-top:10px;
-      border-top:1px solid var(--border);
-      padding-top:14px;
-      max-height:480px;
+      max-height:520px;
       overflow:auto;
+      padding-top:10px;
+      border-top:1px solid var(--border);
     }
 
     .stepItem{
-      padding:10px 12px;
+      padding:10px;
       border-radius:14px;
       border:1px solid var(--border);
       background: rgba(255,255,255,0.02);
       margin-bottom:10px;
+      font-size:0.95rem;
       line-height:1.6;
     }
 
     .stepItem.active{
-      border-color: rgba(56,189,248,0.65);
+      border-color: rgba(56,189,248,0.7);
       background: rgba(56,189,248,0.08);
     }
 
@@ -226,53 +183,51 @@
 </head>
 
 <body>
-  <div class="app">
-    <header>
-      <h1 class="title">דיאליזה פרטוניאלית ידנית (CAPD)</h1>
-      <div class="subtitle">זרימת עבודה שלב-שלב | עבודה סטרילית | חיבור/ניתוק בטוח</div>
-    </header>
+<div class="app">
+  <header>
+    <h1>דיאליזה פרטוניאלית ידנית (CAPD)</h1>
+    <div class="subtitle">זרימת עבודה שלב-שלב | עבודה סטרילית | חיבור/ניתוק בטוח</div>
+  </header>
 
-    <main>
-      <section class="panel">
-        <h2>מדריך קולי פעיל</h2>
+  <main>
+    <section class="panel">
+      <div class="badgeRow">
+        <div class="badge">סטטוס: <strong id="status">מוכן</strong></div>
+        <div class="badge">שלב: <strong id="counter">0 / 0</strong></div>
+        <div class="badge">השהייה: <strong>10 שניות</strong></div>
+      </div>
 
-        <div class="progressBox">
-          <div class="badge">סטטוס: <strong id="statusText">מוכן</strong></div>
-          <div class="badge">שלב: <strong id="stepCounter">0 / 0</strong></div>
-          <div class="badge">השהייה: <strong>10 שניות</strong></div>
+      <div class="current" id="currentText">
+        <span style="color:var(--muted)">לחצי על "התחלת טיפול" כדי להתחיל.</span>
+      </div>
+
+      <div class="warningBox" id="pauseBox">
+        ⏸️ עצירה נדרשת. לחץ על <strong>"המשך טיפול"</strong> כדי להמשיך.
+      </div>
+
+      <div class="controls">
+        <button class="start" id="btnStart">▶ התחלת טיפול</button>
+
+        <div class="row">
+          <button class="prev" id="btnPrev" disabled>⬅ שלב קודם</button>
+          <button class="next" id="btnNext" disabled>שלב הבא ➡</button>
         </div>
 
-        <div class="bigText" id="currentText">
-          <span class="muted">לחץ על "התחלת טיפול" כדי להתחיל את ההקראה.</span>
-        </div>
+        <button class="continue" id="btnContinue" disabled>⏭ המשך טיפול</button>
+        <button class="replay" id="btnReplay" disabled>🔁 הקרא שוב</button>
+        <button class="stop" id="btnStop" disabled>⛔ עצור</button>
+      </div>
+    </section>
 
-        <div class="warningBox" id="pauseBox" style="display:none;">
-          ⏸️ ההקראה נעצרה. לחץ על <strong>כפתור "המשך טיפול"</strong> כדי להמשיך.
-        </div>
-
-        <div class="controls">
-          <button class="btnStart" id="btnStart">▶ התחלת טיפול</button>
-
-          <div class="rowButtons">
-            <button class="btnPrev" id="btnPrev" disabled>⬅ שלב קודם</button>
-            <button class="btnNext" id="btnNext" disabled>שלב הבא ➡</button>
-          </div>
-
-          <button class="btnContinue" id="btnContinue" disabled>⏭ המשך טיפול</button>
-          <button class="btnReplay" id="btnReplay" disabled>🔁 הקרא שוב שלב נוכחי</button>
-          <button class="btnStop" id="btnStop" disabled>⛔ עצור טיפול</button>
-        </div>
-      </section>
-
-      <aside class="panel">
-        <h2>רשימת שלבים</h2>
-        <div class="timeline" id="timeline"></div>
-      </aside>
-    </main>
-  </div>
+    <aside class="panel">
+      <h3 style="margin-top:0;">רשימת שלבים</h3>
+      <div class="timeline" id="timeline"></div>
+    </aside>
+  </main>
+</div>
 
 <script>
-  const DELAY_BETWEEN_STEPS_MS = 10000;
+  const DELAY = 10000;
 
   const scriptText = `
 שלב A: הכנת סביבת עבודה סגירת מיזוג, סגירת חלונות, סגירת דלת/וילון, רחיצת ידיים, לנקות משטח עבודה, פתיחת הציוד בצורה סטרילית, הנחת הציוד על המשטח הנקי,
@@ -283,88 +238,69 @@
 שלב E: סגירה וניתוק, רחצת ידיים, עטיית מסיכת פנים לכולם, הכנת ציוד לסגירת הקטטר כולל פקק חדש וסגירת הצינורות של השקית על ידי קלימים כחולים אחד על קו הניקוז והשני על קו המילוי, חיטוי ידיים, עטיית כפפות סטריליות, ניתוק המטופל בצורה סטרילית וסגירת הקטטר עם פקק סטרילי חדש, קיבוע הקטטר, תיעוד במערכת קמליון: רכיב UF בטבלת הוראות ומדדים
 `.trim();
 
-  function parseSteps(text){
-    return text
-      .split(",")
-      .map(s => s.trim())
-      .filter(s => s.length > 0)
-      .map(s => s.replace(/\s+/g, " "));
-  }
+  const steps = scriptText.split(",").map(s => s.trim()).filter(Boolean);
 
-  const steps = parseSteps(scriptText);
-
-  // עצירה לפני המשפטים האלה:
+  // עצירה לפני שלבים אלו:
   function isPausePoint(text){
-    if (text.startsWith("לאחר סיום השלב של הניקוז")) return true; // אחרי שלב C
-    if (text.startsWith("שלב E")) return true; // אחרי שלב D
+    if (text.startsWith("לאחר סיום השלב של הניקוז")) return true;
+    if (text.startsWith("שלב E")) return true;
     return false;
   }
 
-  const statusText = document.getElementById("statusText");
-  const stepCounter = document.getElementById("stepCounter");
-  const currentText = document.getElementById("currentText");
+  const statusEl = document.getElementById("status");
+  const counterEl = document.getElementById("counter");
+  const currentEl = document.getElementById("currentText");
+  const pauseBox = document.getElementById("pauseBox");
   const timeline = document.getElementById("timeline");
 
   const btnStart = document.getElementById("btnStart");
   const btnContinue = document.getElementById("btnContinue");
-  const btnStop = document.getElementById("btnStop");
-  const btnReplay = document.getElementById("btnReplay");
-  const btnNext = document.getElementById("btnNext");
   const btnPrev = document.getElementById("btnPrev");
-  const pauseBox = document.getElementById("pauseBox");
+  const btnNext = document.getElementById("btnNext");
+  const btnReplay = document.getElementById("btnReplay");
+  const btnStop = document.getElementById("btnStop");
 
   let currentIndex = -1;
-  let isRunning = false;
-  let isPaused = false;
-  let resumeIndex = null;
-  let timerHandle = null;
+  let timer = null;
 
-  function buildTimeline(){
+  let running = false;
+  let paused = false;
+
+  function renderTimeline(){
     timeline.innerHTML = "";
-    steps.forEach((text, i) => {
+    steps.forEach((t, i) => {
       const div = document.createElement("div");
       div.className = "stepItem";
       div.id = "step-" + i;
-      div.textContent = (i+1) + ". " + text;
+      div.textContent = (i+1) + ". " + t;
       timeline.appendChild(div);
     });
-
-    stepCounter.textContent = `0 / ${steps.length}`;
   }
 
-  function highlightTimeline(){
+  function updateUI(){
+    counterEl.textContent = `${Math.max(currentIndex+1,0)} / ${steps.length}`;
+
+    btnStop.disabled = !running;
+    btnReplay.disabled = !running || currentIndex < 0;
+    btnNext.disabled = !running;
+    btnPrev.disabled = !running || currentIndex <= 0;
+
+    pauseBox.style.display = paused ? "block" : "none";
+    btnContinue.disabled = !paused;
+
+    statusEl.textContent = paused ? "ממתין להמשך טיפול" : (running ? "מקריא..." : "מוכן");
+
     steps.forEach((_, i) => {
       const el = document.getElementById("step-" + i);
-      el.classList.remove("active","done");
+      el.classList.remove("active", "done");
       if (i < currentIndex) el.classList.add("done");
       if (i === currentIndex) el.classList.add("active");
     });
   }
 
-  function updateUI(){
-    stepCounter.textContent = `${Math.max(currentIndex+1,0)} / ${steps.length}`;
-
-    btnStop.disabled = !isRunning;
-    btnReplay.disabled = !isRunning || currentIndex < 0;
-    btnNext.disabled = !isRunning;
-    btnPrev.disabled = !isRunning || currentIndex <= 0;
-
-    if (isPaused){
-      btnContinue.disabled = false;
-      pauseBox.style.display = "block";
-      statusText.textContent = "ממתין להמשך טיפול";
-    } else {
-      btnContinue.disabled = true;
-      pauseBox.style.display = "none";
-      statusText.textContent = isRunning ? "מקריא..." : "מוכן";
-    }
-
-    highlightTimeline();
-  }
-
-  function clearTimer(){
-    if (timerHandle) clearTimeout(timerHandle);
-    timerHandle = null;
+  function stopTimer(){
+    if (timer) clearTimeout(timer);
+    timer = null;
   }
 
   function speak(text){
@@ -375,177 +311,122 @@
         return;
       }
 
+      // חשוב מאוד במובייל:
       window.speechSynthesis.cancel();
-      const utter = new SpeechSynthesisUtterance(text);
-      utter.lang = "he-IL";
-      utter.rate = 1;
-      utter.volume = 1;
-      utter.pitch = 1;
 
-      utter.onend = () => resolve();
-      utter.onerror = () => resolve();
+      const u = new SpeechSynthesisUtterance(text);
+      u.lang = "he-IL";
+      u.rate = 1;
+      u.pitch = 1;
+      u.volume = 1;
 
-      window.speechSynthesis.speak(utter);
+      u.onend = () => resolve();
+      u.onerror = () => resolve();
+
+      window.speechSynthesis.speak(u);
     });
   }
 
-  function delay(ms){
-    return new Promise((resolve) => {
-      timerHandle = setTimeout(resolve, ms);
-    });
-  }
+  async function goTo(index){
+    if (!running) return;
 
-  async function speakStep(index){
+    stopTimer();
+    paused = false;
+
     currentIndex = index;
-    const text = steps[currentIndex];
-    currentText.textContent = text;
+    currentEl.textContent = steps[currentIndex];
     updateUI();
-    await speak(text);
+
+    await speak(steps[currentIndex]);
+
+    if (!running) return;
+    if (paused) return;
+
+    timer = setTimeout(() => {
+      autoNext();
+    }, DELAY);
   }
 
-  async function scheduleNext(){
-    clearTimer();
-    await delay(DELAY_BETWEEN_STEPS_MS);
+  function autoNext(){
+    if (!running) return;
+    if (paused) return;
 
-    if (!isRunning) return;
-    if (isPaused) return;
+    const nextIndex = currentIndex + 1;
 
-    await goNextAuto();
-  }
-
-  async function goNextAuto(){
-    if (!isRunning) return;
-
-    if (currentIndex >= steps.length - 1){
-      isRunning = false;
-      currentText.innerHTML = "<strong>✅ הטיפול הסתיים בהצלחה.</strong>";
-      statusText.textContent = "הסתיים";
+    if (nextIndex >= steps.length){
+      running = false;
+      paused = false;
+      stopTimer();
+      currentEl.innerHTML = "<strong>✅ הטיפול הסתיים בהצלחה.</strong>";
       updateUI();
       return;
     }
 
-    const nextIndex = currentIndex + 1;
-    const nextText = steps[nextIndex];
-
-    // אם זה נקודת עצירה - נעצור ונחכה להמשך טיפול
-    if (isPausePoint(nextText)){
-      isPaused = true;
-      resumeIndex = nextIndex;
-      currentText.innerHTML = `<span class="muted">ההקראה נעצרה. לחץ על "המשך טיפול" כדי להמשיך.</span>`;
-      updateUI();
-      return;
-    }
-
-    await speakStep(nextIndex);
-    await scheduleNext();
-  }
-
-  async function startFlow(){
-    isRunning = true;
-    isPaused = false;
-    resumeIndex = null;
-
-    await speakStep(0);
-    await scheduleNext();
-  }
-
-  async function continueFlow(){
-    if (!isRunning) return;
-    if (!isPaused) return;
-    if (resumeIndex === null) return;
-
-    isPaused = false;
-    updateUI();
-
-    await speakStep(resumeIndex);
-    resumeIndex = null;
-
-    await scheduleNext();
-  }
-
-  async function manualNext(){
-    if (!isRunning) return;
-
-    clearTimer();
-    isPaused = false;
-    resumeIndex = null;
-
-    if (currentIndex >= steps.length - 1) return;
-
-    const nextIndex = currentIndex + 1;
     const nextText = steps[nextIndex];
 
     if (isPausePoint(nextText)){
-      isPaused = true;
-      resumeIndex = nextIndex;
-      currentText.innerHTML = `<span class="muted">ההקראה נעצרה. לחץ על "המשך טיפול" כדי להמשיך.</span>`;
+      paused = true;
+      stopTimer();
+      currentEl.innerHTML = `<span style="color:var(--muted)">ההקראה נעצרה. השלב הבא מוכן: <strong>${nextText}</strong></span>`;
       updateUI();
       return;
     }
 
-    await speakStep(nextIndex);
-    await scheduleNext();
+    goTo(nextIndex);
   }
 
-  async function manualPrev(){
-    if (!isRunning) return;
-
-    clearTimer();
-    isPaused = false;
-    resumeIndex = null;
-
-    if (currentIndex <= 0) return;
-
-    await speakStep(currentIndex - 1);
-    await scheduleNext();
+  async function start(){
+    running = true;
+    paused = false;
+    currentIndex = 0;
+    updateUI();
+    await goTo(0);
   }
 
-  async function replay(){
-    if (!isRunning || currentIndex < 0) return;
+  function continueAfterPause(){
+    if (!running) return;
+    if (!paused) return;
 
-    clearTimer();
-    await speakStep(currentIndex);
-    await scheduleNext();
+    paused = false;
+    updateUI();
+
+    // ממשיכים לשלב הבא
+    autoNext();
   }
 
   function stopAll(){
-    isRunning = false;
-    isPaused = false;
-    resumeIndex = null;
+    running = false;
+    paused = false;
     currentIndex = -1;
-    clearTimer();
+    stopTimer();
     window.speechSynthesis.cancel();
-
-    currentText.innerHTML = `<span class="muted">הטיפול נעצר. ניתן להתחיל מחדש.</span>`;
+    currentEl.innerHTML = `<span style="color:var(--muted)">הטיפול נעצר. ניתן להתחיל מחדש.</span>`;
     updateUI();
   }
 
-  btnStart.addEventListener("click", async () => {
-    if (isRunning) return;
-    await startFlow();
+  btnStart.addEventListener("click", () => start());
+  btnContinue.addEventListener("click", () => continueAfterPause());
+
+  btnNext.addEventListener("click", () => {
+    if (!running) return;
+    if (currentIndex >= steps.length - 1) return;
+    goTo(currentIndex + 1);
   });
 
-  btnContinue.addEventListener("click", async () => {
-    await continueFlow();
+  btnPrev.addEventListener("click", () => {
+    if (!running) return;
+    if (currentIndex <= 0) return;
+    goTo(currentIndex - 1);
   });
 
-  btnNext.addEventListener("click", async () => {
-    await manualNext();
+  btnReplay.addEventListener("click", () => {
+    if (!running || currentIndex < 0) return;
+    goTo(currentIndex);
   });
 
-  btnPrev.addEventListener("click", async () => {
-    await manualPrev();
-  });
+  btnStop.addEventListener("click", () => stopAll());
 
-  btnReplay.addEventListener("click", async () => {
-    await replay();
-  });
-
-  btnStop.addEventListener("click", () => {
-    stopAll();
-  });
-
-  buildTimeline();
+  renderTimeline();
   updateUI();
 </script>
 
