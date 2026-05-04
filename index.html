@@ -186,36 +186,6 @@
       color:#e2e8f0;
     }
 
-    .settings{
-      margin-top:14px;
-      padding-top:12px;
-      border-top:1px solid var(--border);
-      display:flex;
-      flex-direction:column;
-      gap:10px;
-    }
-
-    label{
-      font-size:0.92rem;
-      color:var(--muted);
-      display:flex;
-      justify-content:space-between;
-      align-items:center;
-      gap:10px;
-    }
-
-    input[type="range"]{
-      width:170px;
-      accent-color: var(--accent);
-    }
-
-    .footerNote{
-      margin-top:14px;
-      font-size:0.85rem;
-      color:var(--muted);
-      line-height:1.6;
-    }
-
     .warningBox{
       margin-top:14px;
       padding:12px 14px;
@@ -242,8 +212,6 @@
       background: rgba(255,255,255,0.02);
       margin-bottom:10px;
       line-height:1.6;
-      cursor:pointer;
-      transition: 0.12s ease-in-out;
     }
 
     .stepItem.active{
@@ -294,28 +262,6 @@
           <button class="btnReplay" id="btnReplay" disabled>🔁 הקרא שוב שלב נוכחי</button>
           <button class="btnStop" id="btnStop" disabled>⛔ עצור טיפול</button>
         </div>
-
-        <div class="settings">
-          <label>
-            מהירות דיבור
-            <input type="range" min="0.7" max="1.3" step="0.05" value="1" id="rateRange">
-          </label>
-
-          <label>
-            עוצמת קול
-            <input type="range" min="0" max="1" step="0.05" value="1" id="volumeRange">
-          </label>
-
-          <label>
-            טון קול
-            <input type="range" min="0.8" max="1.2" step="0.05" value="1" id="pitchRange">
-          </label>
-        </div>
-
-        <div class="footerNote">
-          מומלץ להשתמש ב-Chrome.  
-          במובייל ייתכן שתידרש לחיצה ראשונית כדי לאפשר קול.
-        </div>
       </section>
 
       <aside class="panel">
@@ -328,7 +274,6 @@
 <script>
   const DELAY_BETWEEN_STEPS_MS = 10000;
 
-  // טקסט לפי ההוראות שלך
   const scriptText = `
 שלב A: הכנת סביבת עבודה סגירת מיזוג, סגירת חלונות, סגירת דלת/וילון, רחיצת ידיים, לנקות משטח עבודה, פתיחת הציוד בצורה סטרילית, הנחת הציוד על המשטח הנקי,
 שלב B: חיבור המטופל, עטיית מסיכת פנים על כולם, חיטוי ידיים, עטיית כפפות סטריליות, הסרת מכסה של סט הדיאליזה בצורה סטרילית וחיבור הקטטר טינקוף לסט,
@@ -348,11 +293,10 @@
 
   const steps = parseSteps(scriptText);
 
-  // עצירה אחרי שלב C ולפני "לאחר סיום השלב של הניקוז"
-  // עצירה אחרי שלב D ולפני "שלב E"
-  function isManualPausePoint(text){
-    if (text.startsWith("לאחר סיום השלב של הניקוז")) return true;
-    if (text.startsWith("שלב E")) return true;
+  // עצירה לפני המשפטים האלה:
+  function isPausePoint(text){
+    if (text.startsWith("לאחר סיום השלב של הניקוז")) return true; // אחרי שלב C
+    if (text.startsWith("שלב E")) return true; // אחרי שלב D
     return false;
   }
 
@@ -367,16 +311,12 @@
   const btnReplay = document.getElementById("btnReplay");
   const btnNext = document.getElementById("btnNext");
   const btnPrev = document.getElementById("btnPrev");
-
   const pauseBox = document.getElementById("pauseBox");
-
-  const rateRange = document.getElementById("rateRange");
-  const volumeRange = document.getElementById("volumeRange");
-  const pitchRange = document.getElementById("pitchRange");
 
   let currentIndex = -1;
   let isRunning = false;
-  let isPausedForManualContinue = false;
+  let isPaused = false;
+  let resumeIndex = null;
   let timerHandle = null;
 
   function buildTimeline(){
@@ -392,12 +332,10 @@
     stepCounter.textContent = `0 / ${steps.length}`;
   }
 
-  buildTimeline();
-
   function highlightTimeline(){
     steps.forEach((_, i) => {
       const el = document.getElementById("step-" + i);
-      el.classList.remove("active", "done");
+      el.classList.remove("active","done");
       if (i < currentIndex) el.classList.add("done");
       if (i === currentIndex) el.classList.add("active");
     });
@@ -405,12 +343,13 @@
 
   function updateUI(){
     stepCounter.textContent = `${Math.max(currentIndex+1,0)} / ${steps.length}`;
+
     btnStop.disabled = !isRunning;
     btnReplay.disabled = !isRunning || currentIndex < 0;
     btnNext.disabled = !isRunning;
     btnPrev.disabled = !isRunning || currentIndex <= 0;
 
-    if (isPausedForManualContinue){
+    if (isPaused){
       btnContinue.disabled = false;
       pauseBox.style.display = "block";
       statusText.textContent = "ממתין להמשך טיפול";
@@ -437,12 +376,11 @@
       }
 
       window.speechSynthesis.cancel();
-
       const utter = new SpeechSynthesisUtterance(text);
       utter.lang = "he-IL";
-      utter.rate = parseFloat(rateRange.value);
-      utter.volume = parseFloat(volumeRange.value);
-      utter.pitch = parseFloat(pitchRange.value);
+      utter.rate = 1;
+      utter.volume = 1;
+      utter.pitch = 1;
 
       utter.onend = () => resolve();
       utter.onerror = () => resolve();
@@ -465,22 +403,22 @@
     await speak(text);
   }
 
-  async function scheduleAutoContinue(){
+  async function scheduleNext(){
     clearTimer();
     await delay(DELAY_BETWEEN_STEPS_MS);
 
     if (!isRunning) return;
-    if (isPausedForManualContinue) return;
+    if (isPaused) return;
 
-    await autoNext();
+    await goNextAuto();
   }
 
-  async function autoNext(){
+  async function goNextAuto(){
     if (!isRunning) return;
 
     if (currentIndex >= steps.length - 1){
       isRunning = false;
-      currentText.innerHTML = `<strong>✅ הטיפול הסתיים בהצלחה.</strong>`;
+      currentText.innerHTML = "<strong>✅ הטיפול הסתיים בהצלחה.</strong>";
       statusText.textContent = "הסתיים";
       updateUI();
       return;
@@ -489,79 +427,91 @@
     const nextIndex = currentIndex + 1;
     const nextText = steps[nextIndex];
 
-    if (isManualPausePoint(nextText)){
-      isPausedForManualContinue = true;
+    // אם זה נקודת עצירה - נעצור ונחכה להמשך טיפול
+    if (isPausePoint(nextText)){
+      isPaused = true;
+      resumeIndex = nextIndex;
       currentText.innerHTML = `<span class="muted">ההקראה נעצרה. לחץ על "המשך טיפול" כדי להמשיך.</span>`;
       updateUI();
       return;
     }
 
     await speakStep(nextIndex);
-    if (!isRunning) return;
-
-    await scheduleAutoContinue();
+    await scheduleNext();
   }
 
   async function startFlow(){
     isRunning = true;
-    isPausedForManualContinue = false;
-    currentIndex = 0;
+    isPaused = false;
+    resumeIndex = null;
 
     await speakStep(0);
-    if (!isRunning) return;
-
-    await scheduleAutoContinue();
+    await scheduleNext();
   }
 
-  async function manualContinue(){
+  async function continueFlow(){
     if (!isRunning) return;
-    if (!isPausedForManualContinue) return;
+    if (!isPaused) return;
+    if (resumeIndex === null) return;
 
-    isPausedForManualContinue = false;
+    isPaused = false;
     updateUI();
 
-    // ממשיכים לשלב הבא אחרי העצירה
-    await autoNext();
+    await speakStep(resumeIndex);
+    resumeIndex = null;
+
+    await scheduleNext();
   }
 
   async function manualNext(){
     if (!isRunning) return;
+
     clearTimer();
+    isPaused = false;
+    resumeIndex = null;
 
     if (currentIndex >= steps.length - 1) return;
 
     const nextIndex = currentIndex + 1;
     const nextText = steps[nextIndex];
 
-    if (isManualPausePoint(nextText)){
-      isPausedForManualContinue = true;
+    if (isPausePoint(nextText)){
+      isPaused = true;
+      resumeIndex = nextIndex;
       currentText.innerHTML = `<span class="muted">ההקראה נעצרה. לחץ על "המשך טיפול" כדי להמשיך.</span>`;
       updateUI();
       return;
     }
 
     await speakStep(nextIndex);
-
-    // ממשיכים אוטומטית בלי לעצור
-    await scheduleAutoContinue();
+    await scheduleNext();
   }
 
   async function manualPrev(){
     if (!isRunning) return;
+
     clearTimer();
+    isPaused = false;
+    resumeIndex = null;
 
     if (currentIndex <= 0) return;
 
-    isPausedForManualContinue = false;
     await speakStep(currentIndex - 1);
+    await scheduleNext();
+  }
 
-    // ממשיכים אוטומטית בלי לעצור
-    await scheduleAutoContinue();
+  async function replay(){
+    if (!isRunning || currentIndex < 0) return;
+
+    clearTimer();
+    await speakStep(currentIndex);
+    await scheduleNext();
   }
 
   function stopAll(){
     isRunning = false;
-    isPausedForManualContinue = false;
+    isPaused = false;
+    resumeIndex = null;
     currentIndex = -1;
     clearTimer();
     window.speechSynthesis.cancel();
@@ -576,7 +526,7 @@
   });
 
   btnContinue.addEventListener("click", async () => {
-    await manualContinue();
+    await continueFlow();
   });
 
   btnNext.addEventListener("click", async () => {
@@ -588,16 +538,14 @@
   });
 
   btnReplay.addEventListener("click", async () => {
-    if (!isRunning || currentIndex < 0) return;
-    clearTimer();
-    await speakStep(currentIndex);
-    await scheduleAutoContinue();
+    await replay();
   });
 
   btnStop.addEventListener("click", () => {
     stopAll();
   });
 
+  buildTimeline();
   updateUI();
 </script>
 
