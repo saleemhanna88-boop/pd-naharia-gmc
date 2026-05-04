@@ -266,6 +266,9 @@
   let running = false;
   let paused = false;
 
+  // שומר לאיזה שלב צריך להמשיך אחרי Pause
+  let pauseNextIndex = null;
+
   function renderTimeline(){
     timeline.innerHTML = "";
     steps.forEach((t, i) => {
@@ -311,7 +314,6 @@
         return;
       }
 
-      // חשוב מאוד במובייל:
       window.speechSynthesis.cancel();
 
       const u = new SpeechSynthesisUtterance(text);
@@ -332,6 +334,7 @@
 
     stopTimer();
     paused = false;
+    pauseNextIndex = null;
 
     currentIndex = index;
     currentEl.textContent = steps[currentIndex];
@@ -356,6 +359,7 @@
     if (nextIndex >= steps.length){
       running = false;
       paused = false;
+      pauseNextIndex = null;
       stopTimer();
       currentEl.innerHTML = "<strong>✅ הטיפול הסתיים בהצלחה.</strong>";
       updateUI();
@@ -366,7 +370,9 @@
 
     if (isPausePoint(nextText)){
       paused = true;
+      pauseNextIndex = nextIndex; // <<< חשוב
       stopTimer();
+
       currentEl.innerHTML = `<span style="color:var(--muted)">ההקראה נעצרה. השלב הבא מוכן: <strong>${nextText}</strong></span>`;
       updateUI();
       return;
@@ -378,6 +384,7 @@
   async function start(){
     running = true;
     paused = false;
+    pauseNextIndex = null;
     currentIndex = 0;
     updateUI();
     await goTo(0);
@@ -390,13 +397,20 @@
     paused = false;
     updateUI();
 
-    // ממשיכים לשלב הבא
-    autoNext();
+    // ממשיכים לשלב שהוכן מראש
+    if (pauseNextIndex !== null){
+      goTo(pauseNextIndex);
+      pauseNextIndex = null;
+    } else {
+      // fallback
+      goTo(currentIndex + 1);
+    }
   }
 
   function stopAll(){
     running = false;
     paused = false;
+    pauseNextIndex = null;
     currentIndex = -1;
     stopTimer();
     window.speechSynthesis.cancel();
