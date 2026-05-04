@@ -9,7 +9,6 @@
     :root{
       --bg:#0b1220;
       --card:#111a2e;
-      --card2:#0f172a;
       --text:#e5e7eb;
       --muted:#94a3b8;
       --accent:#38bdf8;
@@ -84,7 +83,6 @@
     .panel h2{
       margin:0 0 12px 0;
       font-size:1.05rem;
-      letter-spacing:0.2px;
     }
 
     .progressBox{
@@ -248,10 +246,6 @@
       transition: 0.12s ease-in-out;
     }
 
-    .stepItem:hover{
-      background: rgba(255,255,255,0.04);
-    }
-
     .stepItem.active{
       border-color: rgba(56,189,248,0.65);
       background: rgba(56,189,248,0.08);
@@ -259,30 +253,6 @@
 
     .stepItem.done{
       opacity:0.7;
-    }
-
-    .stepHeader{
-      display:flex;
-      justify-content:space-between;
-      gap:10px;
-      align-items:center;
-      margin-bottom:4px;
-      flex-wrap:wrap;
-    }
-
-    .stepNum{
-      font-weight:800;
-      color:var(--accent);
-      font-size:0.9rem;
-    }
-
-    .stepTag{
-      font-size:0.78rem;
-      padding:4px 10px;
-      border-radius:999px;
-      border:1px solid var(--border);
-      color:var(--muted);
-      background: rgba(0,0,0,0.12);
     }
   </style>
 </head>
@@ -349,7 +319,7 @@
       </section>
 
       <aside class="panel">
-        <h2>רשימת שלבים (לחיצה תקריא מיד)</h2>
+        <h2>רשימת שלבים</h2>
         <div class="timeline" id="timeline"></div>
       </aside>
     </main>
@@ -358,16 +328,14 @@
 <script>
   const DELAY_BETWEEN_STEPS_MS = 10000;
 
-  // כאן נעצור עד לחיצה על "המשך טיפול"
-  const MANUAL_STOP_AFTER_CONTAINS = "שלב C";
-
+  // טקסט לפי ההוראות שלך
   const scriptText = `
 שלב A: הכנת סביבת עבודה סגירת מיזוג, סגירת חלונות, סגירת דלת/וילון, רחיצת ידיים, לנקות משטח עבודה, פתיחת הציוד בצורה סטרילית, הנחת הציוד על המשטח הנקי,
-שלב B: חיבור המטופל עטיית מסיכת פנים על כולם, חיטוי ידיים, עטיית כפפות סטריליות, הסרת מכסה של סט הדיאליזה בצורה סטרילית, חיבור הקטטר טינקוף לסט,
-שלב C: ניקוז (DRAIN) פתיחת קו ניקוז על ידי סיבוב הסוגר של מוצא קטטר, ניקוז מלא לשקית ניקוז, הורדת כפפות ולחזור למטופל לאחר סיום שלב הניקוז,
-לאחר סיום השלב של הניקוז, סגירת הקו של המטופל על ידי סיבוב הסוגר של הקטטר עד השמע קליק עדין, שקילת השקית,
-שלב D: מילוי (FILL), שבירת הנצרה הירוקה שטיפת הסט במשך 5 שניות וסגירת קו הניקוז ע"י שני קלימים כחולים, פתיחת הקו של המטופל על ידי סיבוב הסוגר של הקטטר, מילוי לפי נפח בהוראה,
-שלב E: סגירה וניתוק, רחצת ידיים, מסיכת פנים לכולם, הכנת ציוד לסגירת הקטטר כולל פקק חדש וסגירת הצינורות של השקית על ידי קלימם כחולים אחד על קו הניקוז והשני על קו המילוי, חיטוי ידיים, עטיית כפפות סטריליות, ניתוק המטופל בצורה סטרילית, סגירת הקטטר עם פקק סטרילי חדש, קיבוע הקטטר, תיעוד במערכת קמליון: רכיב UF בטבלת הוראות ומדדים
+שלב B: חיבור המטופל, עטיית מסיכת פנים על כולם, חיטוי ידיים, עטיית כפפות סטריליות, הסרת מכסה של סט הדיאליזה בצורה סטרילית וחיבור הקטטר טינקוף לסט,
+שלב C: ניקוז, פתיחת קו ניקוז על ידי סיבוב הסוגר של מוצא קטטר, ניקוז מלא לשקית ניקוז, הורדת כפפות ולחזור למטופל לאחר סיום שלב הניקוז,
+לאחר סיום השלב של הניקוז, סגירת הקו של המטופל על ידי סיבוב הסוגר של הקטטר עד הישמע קליק עדין, שקילת השקית,
+שלב D: מילוי, שבירת הנצרה הירוקה שטיפת הסט במשך 5 שניות וסגירת קו הניקוז ע"י שני קלימים כחולים, פתיחת הקו של המטופל על ידי סיבוב הסוגר של הקטטר, מילוי לפי נפח בהוראה,
+שלב E: סגירה וניתוק, רחצת ידיים, עטיית מסיכת פנים לכולם, הכנת ציוד לסגירת הקטטר כולל פקק חדש וסגירת הצינורות של השקית על ידי קלימים כחולים אחד על קו הניקוז והשני על קו המילוי, חיטוי ידיים, עטיית כפפות סטריליות, ניתוק המטופל בצורה סטרילית וסגירת הקטטר עם פקק סטרילי חדש, קיבוע הקטטר, תיעוד במערכת קמליון: רכיב UF בטבלת הוראות ומדדים
 `.trim();
 
   function parseSteps(text){
@@ -379,6 +347,14 @@
   }
 
   const steps = parseSteps(scriptText);
+
+  // עצירה אחרי שלב C ולפני "לאחר סיום השלב של הניקוז"
+  // עצירה אחרי שלב D ולפני "שלב E"
+  function isManualPausePoint(text){
+    if (text.startsWith("לאחר סיום השלב של הניקוז")) return true;
+    if (text.startsWith("שלב E")) return true;
+    return false;
+  }
 
   const statusText = document.getElementById("statusText");
   const stepCounter = document.getElementById("stepCounter");
@@ -402,7 +378,6 @@
   let isRunning = false;
   let isPausedForManualContinue = false;
   let timerHandle = null;
-  let lastSpokenText = "";
 
   function buildTimeline(){
     timeline.innerHTML = "";
@@ -410,32 +385,7 @@
       const div = document.createElement("div");
       div.className = "stepItem";
       div.id = "step-" + i;
-
-      const header = document.createElement("div");
-      header.className = "stepHeader";
-
-      const num = document.createElement("div");
-      num.className = "stepNum";
-      num.textContent = "שלב " + (i+1);
-
-      const tag = document.createElement("div");
-      tag.className = "stepTag";
-      tag.textContent = "CAPD";
-
-      header.appendChild(num);
-      header.appendChild(tag);
-
-      const body = document.createElement("div");
-      body.textContent = text;
-
-      div.appendChild(header);
-      div.appendChild(body);
-
-      div.addEventListener("click", () => {
-        if (!isRunning) return;
-        jumpToStep(i);
-      });
-
+      div.textContent = (i+1) + ". " + text;
       timeline.appendChild(div);
     });
 
@@ -443,6 +393,40 @@
   }
 
   buildTimeline();
+
+  function highlightTimeline(){
+    steps.forEach((_, i) => {
+      const el = document.getElementById("step-" + i);
+      el.classList.remove("active", "done");
+      if (i < currentIndex) el.classList.add("done");
+      if (i === currentIndex) el.classList.add("active");
+    });
+  }
+
+  function updateUI(){
+    stepCounter.textContent = `${Math.max(currentIndex+1,0)} / ${steps.length}`;
+    btnStop.disabled = !isRunning;
+    btnReplay.disabled = !isRunning || currentIndex < 0;
+    btnNext.disabled = !isRunning;
+    btnPrev.disabled = !isRunning || currentIndex <= 0;
+
+    if (isPausedForManualContinue){
+      btnContinue.disabled = false;
+      pauseBox.style.display = "block";
+      statusText.textContent = "ממתין להמשך טיפול";
+    } else {
+      btnContinue.disabled = true;
+      pauseBox.style.display = "none";
+      statusText.textContent = isRunning ? "מקריא..." : "מוכן";
+    }
+
+    highlightTimeline();
+  }
+
+  function clearTimer(){
+    if (timerHandle) clearTimeout(timerHandle);
+    timerHandle = null;
+  }
 
   function speak(text){
     return new Promise((resolve) => {
@@ -473,44 +457,112 @@
     });
   }
 
-  function clearTimer(){
-    if (timerHandle) clearTimeout(timerHandle);
-    timerHandle = null;
+  async function speakStep(index){
+    currentIndex = index;
+    const text = steps[currentIndex];
+    currentText.textContent = text;
+    updateUI();
+    await speak(text);
   }
 
-  function updateUI(){
-    stepCounter.textContent = `${Math.max(currentIndex+1,0)} / ${steps.length}`;
+  async function scheduleAutoContinue(){
+    clearTimer();
+    await delay(DELAY_BETWEEN_STEPS_MS);
 
-    btnStop.disabled = !isRunning;
-    btnReplay.disabled = !isRunning || currentIndex < 0;
-    btnNext.disabled = !isRunning;
-    btnPrev.disabled = !isRunning || currentIndex <= 0;
+    if (!isRunning) return;
+    if (isPausedForManualContinue) return;
 
-    if (isPausedForManualContinue){
-      btnContinue.disabled = false;
-      pauseBox.style.display = "block";
-      statusText.textContent = "ממתין להמשך טיפול";
-    } else {
-      btnContinue.disabled = true;
-      pauseBox.style.display = "none";
-      statusText.textContent = isRunning ? "מקריא..." : "מוכן";
+    await autoNext();
+  }
+
+  async function autoNext(){
+    if (!isRunning) return;
+
+    if (currentIndex >= steps.length - 1){
+      isRunning = false;
+      currentText.innerHTML = `<strong>✅ הטיפול הסתיים בהצלחה.</strong>`;
+      statusText.textContent = "הסתיים";
+      updateUI();
+      return;
     }
 
-    steps.forEach((_, i) => {
-      const el = document.getElementById("step-" + i);
-      el.classList.remove("active","done");
+    const nextIndex = currentIndex + 1;
+    const nextText = steps[nextIndex];
 
-      if (i < currentIndex) el.classList.add("done");
-      if (i === currentIndex) el.classList.add("active");
-    });
+    if (isManualPausePoint(nextText)){
+      isPausedForManualContinue = true;
+      currentText.innerHTML = `<span class="muted">ההקראה נעצרה. לחץ על "המשך טיפול" כדי להמשיך.</span>`;
+      updateUI();
+      return;
+    }
+
+    await speakStep(nextIndex);
+    if (!isRunning) return;
+
+    await scheduleAutoContinue();
+  }
+
+  async function startFlow(){
+    isRunning = true;
+    isPausedForManualContinue = false;
+    currentIndex = 0;
+
+    await speakStep(0);
+    if (!isRunning) return;
+
+    await scheduleAutoContinue();
+  }
+
+  async function manualContinue(){
+    if (!isRunning) return;
+    if (!isPausedForManualContinue) return;
+
+    isPausedForManualContinue = false;
+    updateUI();
+
+    // ממשיכים לשלב הבא אחרי העצירה
+    await autoNext();
+  }
+
+  async function manualNext(){
+    if (!isRunning) return;
+    clearTimer();
+
+    if (currentIndex >= steps.length - 1) return;
+
+    const nextIndex = currentIndex + 1;
+    const nextText = steps[nextIndex];
+
+    if (isManualPausePoint(nextText)){
+      isPausedForManualContinue = true;
+      currentText.innerHTML = `<span class="muted">ההקראה נעצרה. לחץ על "המשך טיפול" כדי להמשיך.</span>`;
+      updateUI();
+      return;
+    }
+
+    await speakStep(nextIndex);
+
+    // ממשיכים אוטומטית בלי לעצור
+    await scheduleAutoContinue();
+  }
+
+  async function manualPrev(){
+    if (!isRunning) return;
+    clearTimer();
+
+    if (currentIndex <= 0) return;
+
+    isPausedForManualContinue = false;
+    await speakStep(currentIndex - 1);
+
+    // ממשיכים אוטומטית בלי לעצור
+    await scheduleAutoContinue();
   }
 
   function stopAll(){
     isRunning = false;
     isPausedForManualContinue = false;
     currentIndex = -1;
-    lastSpokenText = "";
-
     clearTimer();
     window.speechSynthesis.cancel();
 
@@ -518,145 +570,32 @@
     updateUI();
   }
 
-  async function speakCurrentStep(){
-    const text = steps[currentIndex];
-    lastSpokenText = text;
-    currentText.textContent = text;
-    await speak(text);
-  }
-
-  function shouldPauseNow(text){
-    // עצירה אחרי שלב C - כלומר אחרי שסיימנו להקריא "שלב C..."
-    // ברגע שמגיעים למשפט הבא שמתחיל "לאחר סיום השלב של הניקוז" - נעצור לפניו.
-    if (text.startsWith("לאחר סיום השלב של הניקוז")) return true;
-    return false;
-  }
-
-  async function runFlow(fromIndex = 0){
-    isRunning = true;
-    isPausedForManualContinue = false;
-
-    for (let i = fromIndex; i < steps.length; i++){
-      currentIndex = i;
-      updateUI();
-
-      const text = steps[i];
-
-      if (shouldPauseNow(text)){
-        isPausedForManualContinue = true;
-        currentText.innerHTML = `<span class="muted">ההקראה נעצרה. לחץ על "המשך טיפול" כדי להמשיך.</span>`;
-        updateUI();
-        return;
-      }
-
-      await speakCurrentStep();
-      if (!isRunning) return;
-
-      await delay(DELAY_BETWEEN_STEPS_MS);
-      if (!isRunning) return;
-    }
-
-    isRunning = false;
-    currentText.innerHTML = `<strong>✅ הטיפול הסתיים בהצלחה.</strong>`;
-    statusText.textContent = "הסתיים";
-    updateUI();
-  }
-
-  async function continueAfterPause(){
-    if (!isPausedForManualContinue) return;
-
-    isPausedForManualContinue = false;
-    updateUI();
-
-    // ממשיכים מאותו שלב שבו נעצרנו
-    await runFlow(currentIndex);
-  }
-
-  async function jumpToStep(index){
-    if (!isRunning) return;
-
-    clearTimer();
-    window.speechSynthesis.cancel();
-
-    isPausedForManualContinue = false;
-    currentIndex = index;
-    updateUI();
-
-    await speakCurrentStep();
-  }
-
-  async function nextStep(){
-    if (!isRunning) return;
-    if (currentIndex >= steps.length - 1) return;
-
-    clearTimer();
-    window.speechSynthesis.cancel();
-
-    isPausedForManualContinue = false;
-    currentIndex++;
-
-    updateUI();
-
-    if (shouldPauseNow(steps[currentIndex])){
-      isPausedForManualContinue = true;
-      currentText.innerHTML = `<span class="muted">ההקראה נעצרה. לחץ על "המשך טיפול" כדי להמשיך.</span>`;
-      updateUI();
-      return;
-    }
-
-    await speakCurrentStep();
-  }
-
-  async function prevStep(){
-    if (!isRunning) return;
-    if (currentIndex <= 0) return;
-
-    clearTimer();
-    window.speechSynthesis.cancel();
-
-    isPausedForManualContinue = false;
-    currentIndex--;
-
-    updateUI();
-
-    await speakCurrentStep();
-  }
-
   btnStart.addEventListener("click", async () => {
     if (isRunning) return;
-
-    currentIndex = 0;
-    isRunning = true;
-    isPausedForManualContinue = false;
-
-    currentText.innerHTML = `<span class="muted">מתחיל טיפול... נא להמתין.</span>`;
-    updateUI();
-
-    await delay(500);
-    await runFlow(0);
+    await startFlow();
   });
 
   btnContinue.addEventListener("click", async () => {
-    if (!isRunning) return;
-    await continueAfterPause();
+    await manualContinue();
   });
 
-  btnStop.addEventListener("click", () => {
-    stopAll();
+  btnNext.addEventListener("click", async () => {
+    await manualNext();
+  });
+
+  btnPrev.addEventListener("click", async () => {
+    await manualPrev();
   });
 
   btnReplay.addEventListener("click", async () => {
     if (!isRunning || currentIndex < 0) return;
     clearTimer();
-    await speakCurrentStep();
+    await speakStep(currentIndex);
+    await scheduleAutoContinue();
   });
 
-  btnNext.addEventListener("click", async () => {
-    await nextStep();
-  });
-
-  btnPrev.addEventListener("click", async () => {
-    await prevStep();
+  btnStop.addEventListener("click", () => {
+    stopAll();
   });
 
   updateUI();
